@@ -46,7 +46,7 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('frontend') {  // <-- points to folder containing Dockerfile
+                dir('frontend/frontend') {  // <-- points to folder containing Dockerfile
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
