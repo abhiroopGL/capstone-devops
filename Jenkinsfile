@@ -87,12 +87,12 @@ pipeline {
                     sh "aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME"
 
                     echo "Listing deployment files for Kubernetes..."
-                    sh "ls -la ${WORKSPACE}/infra"
+                    sh "ls -la ${WORKSPACE}/app"
 
                     echo "Deploying to Kubernetes..."
                     sh """
-                    kubectl apply -f ${WORKSPACE}/infra/deployment.yaml
-                    kubectl apply -f ${WORKSPACE}/infra/service.yaml
+                    kubectl apply -f ${WORKSPACE}/app/deployment.yaml
+                    kubectl apply -f ${WORKSPACE}/app/service.yaml
                     """
                 }
             }
