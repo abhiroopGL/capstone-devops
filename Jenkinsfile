@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    triggers {
+        pollSCM('* * * * *') // or rely on webook (preferred)
+    }
 
     environment {
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
