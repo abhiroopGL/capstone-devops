@@ -25,7 +25,7 @@ pipeline {
             steps {
                 echo "Checking out frontend repo (chimsales)"
                 dir('frontend') {
-                    git branch: 'main', url: 'https://github.com/abhiroopGL/chimsales'
+                    git branch: 'test_deploy', url: 'https://github.com/abhiroopGL/chimsales'
                 }
             }
         }
