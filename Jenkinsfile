@@ -46,7 +46,7 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('frontend') {  // workspace/frontend
+                dir('frontend/frontend') {  // workspace/frontend
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
