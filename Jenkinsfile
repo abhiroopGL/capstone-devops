@@ -11,13 +11,13 @@ pipeline {
         CLUSTER_NAME = 'capstone-eks-cluster'
     }
 
-    stage('Checkout') {
-        steps {
-            git branch: 'test_deploy', url: 'https://github.com/abhiroopGL/chimsales'
-        }
-    }
-
     stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'test_deploy', url: 'https://github.com/abhiroopGL/chimsales/frontend'
+            }
+        }
 
         stage('Terraform Init & Apply') {
             steps {
