@@ -82,21 +82,18 @@ pipeline {
 
         stage('Kubernetes Deploy') {
             steps {
-                echo "Deploying frontend to Kubernetes..."
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
-                ]) {
-                    sh '''
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
                     echo "Updating kubeconfig..."
-                    aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+                    sh "aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME"
 
-                    echo "Listing files before kubectl apply:"
-                    ls -la ../../capstone-devops/infra
+                    echo "Listing deployment files for Kubernetes:"
+                    sh 'ls -la ../../infra'
 
-                    echo "Applying Kubernetes manifests..."
+                    echo "Deploying to Kubernetes..."
+                    sh """
                     kubectl apply -f ../../infra/deployment.yaml
                     kubectl apply -f ../../infra/service.yaml
-                    '''
+                    """
                 }
             }
         }
