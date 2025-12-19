@@ -91,8 +91,8 @@ pipeline {
 
                     echo "Deploying to Kubernetes..."
                     sh """
-                    kubectl apply -f ${WORKSPACE}/infra/deployment.yaml
-                    kubectl apply -f ${WORKSPACE}/infra/service.yaml
+                    kubectl apply -f ${WORKSPACE}/deployment.yaml
+                    kubectl apply -f ${WORKSPACE}/service.yaml
                     """
                 }
             }
