@@ -86,17 +86,18 @@ pipeline {
                     echo "Updating kubeconfig..."
                     sh "aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME"
 
-                    echo "Listing deployment files for Kubernetes:"
-                    sh 'ls -la ../../infra'
+                    echo "Listing deployment files for Kubernetes..."
+                    sh "ls -la ${WORKSPACE}/infra"
 
                     echo "Deploying to Kubernetes..."
                     sh """
-                    kubectl apply -f ../../infra/deployment.yaml
-                    kubectl apply -f ../../infra/service.yaml
+                    kubectl apply -f ${WORKSPACE}/infra/deployment.yaml
+                    kubectl apply -f ${WORKSPACE}/infra/service.yaml
                     """
                 }
             }
         }
+
 
 
         stage('SAST Scan (Optional)') {
