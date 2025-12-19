@@ -35,18 +35,18 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('app') {
+                dir('frontend') {
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
-                        sh '''
+                        sh """
                         aws ecr get-login-password --region $AWS_REGION \
-                        | docker login --username AWS --password-stdin 463655182088.dkr.ecr.ap-south-1.amazonaws.com
+                        | docker login --username AWS --password-stdin $ECR_REPO
 
-                        docker buildx build --platform linux/amd64 -t capstone-web-app:latest .
-                        docker tag capstone-web-app:latest $ECR_REPO:latest
+                        docker buildx build --platform linux/amd64 -t frontend-app:latest .
+                        docker tag frontend-app:latest $ECR_REPO:latest
                         docker push $ECR_REPO:latest
-                        '''
+                        """
                     }
                 }
             }
@@ -57,11 +57,11 @@ pipeline {
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                 ]) {
-                    sh '''
+                    sh """
                     aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
-                    kubectl apply -f app/deployment.yaml
-                    kubectl apply -f app/service.yaml
-                    '''
+                    kubectl apply -f frontend/deployment.yaml --record
+                    kubectl apply -f frontend/service.yaml --record
+                    """
                 }
             }
         }
