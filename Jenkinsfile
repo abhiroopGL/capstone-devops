@@ -82,27 +82,25 @@ pipeline {
 
         stage('Kubernetes Deploy') {
             steps {
-                dir('frontend/frontend') {  // folder containing deployment.yaml
-                    withCredentials([
-                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
-                    ]) {
-                        sh '''
-                        echo "Current working directory:"
-                        pwd
-                        echo "Listing files before kubectl apply:"
-                        ls -la
+                echo "Deploying frontend to Kubernetes..."
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
+                ]) {
+                    sh '''
+                    echo "Updating kubeconfig..."
+                    aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
 
-                        echo "Updating kubeconfig..."
-                        aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+                    echo "Listing files before kubectl apply:"
+                    ls -la ../../capstone-devops/infra
 
-                        echo "Deploying frontend to Kubernetes..."
-                        kubectl apply -f deployment.yaml --record
-                        kubectl apply -f service.yaml --record
-                        '''
-                    }
+                    echo "Applying Kubernetes manifests..."
+                    kubectl apply -f ../../capstone-devops/infra/deployment.yaml
+                    kubectl apply -f ../../capstone-devops/infra/service.yaml
+                    '''
                 }
             }
         }
+
 
         stage('SAST Scan (Optional)') {
             steps {
