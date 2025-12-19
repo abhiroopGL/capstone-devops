@@ -46,19 +46,15 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('frontend/frontend') {
+                dir('frontend') {  // <-- points to folder containing Dockerfile
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
                         sh '''
-                        echo "Logging in to ECR..."
                         aws ecr get-login-password --region $AWS_REGION \
                         | docker login --username AWS --password-stdin $ECR_REPO
 
-                        echo "Building Docker image from frontend repo..."
                         docker buildx build --platform linux/amd64 -t frontend-app:latest .
-
-                        echo "Tagging and pushing to ECR..."
                         docker tag frontend-app:latest $ECR_REPO:latest
                         docker push $ECR_REPO:latest
                         '''
@@ -66,6 +62,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Kubernetes Deploy') {
             steps {
