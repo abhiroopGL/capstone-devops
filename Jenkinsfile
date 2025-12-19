@@ -46,7 +46,7 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('frontend/frontend') {  // workspace/frontend
+                dir('frontend/frontend') {  // <- this is the folder containing Dockerfile
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
@@ -56,8 +56,8 @@ pipeline {
                         echo "Listing all files and folders in this directory:"
                         ls -la
 
-                        echo "Dockerfile should be at: frontend/Dockerfile"
-                        if [ ! -f frontend/Dockerfile ]; then
+                        echo "Dockerfile should be here:"
+                        if [ ! -f Dockerfile ]; then
                             echo "ERROR: Dockerfile not found!"
                             exit 1
                         fi
@@ -67,7 +67,8 @@ pipeline {
                         | docker login --username AWS --password-stdin $ECR_REPO
 
                         echo "Building Docker image from frontend repo..."
-                        docker buildx build --platform linux/amd64 -t frontend-app:latest -f frontend/Dockerfile frontend
+                        # Use Dockerfile in current dir and current dir as build context
+                        docker buildx build --platform linux/amd64 -t frontend-app:latest .
 
                         echo "Tagging and pushing Docker image..."
                         docker tag frontend-app:latest $ECR_REPO:latest
@@ -77,6 +78,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Kubernetes Deploy') {
             steps {
