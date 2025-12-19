@@ -46,17 +46,27 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('frontend') {  // Jenkins workspace/frontend
+                dir('frontend') {  // workspace/frontend
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
                         sh '''
+                        echo "Current working directory:"
+                        pwd
+                        echo "Listing all files and folders in this directory:"
+                        ls -la
+
+                        echo "Dockerfile should be at: frontend/Dockerfile"
+                        if [ ! -f frontend/Dockerfile ]; then
+                            echo "ERROR: Dockerfile not found!"
+                            exit 1
+                        fi
+
                         echo "Logging into AWS ECR..."
                         aws ecr get-login-password --region $AWS_REGION \
                         | docker login --username AWS --password-stdin $ECR_REPO
 
                         echo "Building Docker image from frontend repo..."
-                        # Dockerfile is in frontend/Dockerfile relative to current dir
                         docker buildx build --platform linux/amd64 -t frontend-app:latest -f frontend/Dockerfile frontend
 
                         echo "Tagging and pushing Docker image..."
@@ -70,11 +80,16 @@ pipeline {
 
         stage('Kubernetes Deploy') {
             steps {
-                dir('frontend/frontend') {  // actual folder containing deployment.yaml
+                dir('frontend/frontend') {  // folder containing deployment.yaml
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
                         sh '''
+                        echo "Current working directory:"
+                        pwd
+                        echo "Listing files before kubectl apply:"
+                        ls -la
+
                         echo "Updating kubeconfig..."
                         aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
 
