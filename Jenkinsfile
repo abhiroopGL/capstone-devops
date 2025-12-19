@@ -46,15 +46,20 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                dir('frontend/frontend') {  // <-- points to folder containing Dockerfile
+                dir('frontend') {  // Jenkins workspace/frontend
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
                         sh '''
+                        echo "Logging into AWS ECR..."
                         aws ecr get-login-password --region $AWS_REGION \
                         | docker login --username AWS --password-stdin $ECR_REPO
 
-                        docker buildx build --platform linux/amd64 -t frontend-app:latest -f frontend/frontend/Dockerfile frontend/frontend
+                        echo "Building Docker image from frontend repo..."
+                        # Dockerfile is in frontend/Dockerfile relative to current dir
+                        docker buildx build --platform linux/amd64 -t frontend-app:latest -f frontend/Dockerfile frontend
+
+                        echo "Tagging and pushing Docker image..."
                         docker tag frontend-app:latest $ECR_REPO:latest
                         docker push $ECR_REPO:latest
                         '''
@@ -63,13 +68,12 @@ pipeline {
             }
         }
 
-
         stage('Kubernetes Deploy') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
-                ]) {
-                    dir('frontend') {
+                dir('frontend/frontend') {  // actual folder containing deployment.yaml
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
+                    ]) {
                         sh '''
                         echo "Updating kubeconfig..."
                         aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
