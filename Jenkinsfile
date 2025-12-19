@@ -1,7 +1,8 @@
 pipeline {
     agent any
     triggers {
-        pollSCM('* * * * *') // or rely on webook (preferred)
+        // Polling SCM every minute (optional, can remove if using webhooks)
+        pollSCM('* * * * *')
     }
 
     environment {
@@ -13,9 +14,19 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
+        stage('Checkout Main Repo') {
             steps {
-                git branch: 'test_deploy', url: 'https://github.com/abhiroopGL/chimsales/frontend'
+                echo "Checking out main repo (capstone-devops)"
+                git branch: 'main', url: 'https://github.com/abhiroopGL/capstone-devops'
+            }
+        }
+
+        stage('Checkout Frontend Repo') {
+            steps {
+                echo "Checking out frontend repo (chimsales)"
+                dir('frontend') {
+                    git branch: 'main', url: 'https://github.com/abhiroopGL/chimsales'
+                }
             }
         }
 
@@ -39,14 +50,18 @@ pipeline {
                     withCredentials([
                         [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                     ]) {
-                        sh """
+                        sh '''
+                        echo "Logging in to ECR..."
                         aws ecr get-login-password --region $AWS_REGION \
                         | docker login --username AWS --password-stdin $ECR_REPO
 
+                        echo "Building Docker image from frontend repo..."
                         docker buildx build --platform linux/amd64 -t frontend-app:latest .
+
+                        echo "Tagging and pushing to ECR..."
                         docker tag frontend-app:latest $ECR_REPO:latest
                         docker push $ECR_REPO:latest
-                        """
+                        '''
                     }
                 }
             }
@@ -57,24 +72,29 @@ pipeline {
                 withCredentials([
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                 ]) {
-                    sh """
-                    aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
-                    kubectl apply -f frontend/deployment.yaml --record
-                    kubectl apply -f frontend/service.yaml --record
-                    """
+                    dir('frontend') {
+                        sh '''
+                        echo "Updating kubeconfig..."
+                        aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+
+                        echo "Deploying frontend to Kubernetes..."
+                        kubectl apply -f deployment.yaml --record
+                        kubectl apply -f service.yaml --record
+                        '''
+                    }
                 }
             }
         }
 
         stage('SAST Scan (Optional)') {
             steps {
-                sh 'echo "Run SAST tool here (SonarQube / Trivy fs)"'
+                echo "Run SAST tool here (SonarQube / Trivy fs)"
             }
         }
 
         stage('DAST Scan (Optional)') {
             steps {
-                sh 'echo "Run DAST tool here (OWASP ZAP)"'
+                echo "Run DAST tool here (OWASP ZAP)"
             }
         }
     }
