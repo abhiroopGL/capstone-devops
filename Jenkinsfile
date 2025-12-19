@@ -94,8 +94,8 @@ pipeline {
                     ls -la ../../capstone-devops/infra
 
                     echo "Applying Kubernetes manifests..."
-                    kubectl apply -f ../../capstone-devops/infra/deployment.yaml
-                    kubectl apply -f ../../capstone-devops/infra/service.yaml
+                    kubectl apply -f ../../infra/deployment.yaml
+                    kubectl apply -f ../../infra/service.yaml
                     '''
                 }
             }
