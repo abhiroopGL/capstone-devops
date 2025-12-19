@@ -13,8 +13,13 @@ pipeline {
         stage('Terraform Init & Apply') {
             steps {
                 dir('infra') {
-                    sh 'terraform init'
-                    sh 'terraform apply -auto-approve'
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
+                    ]) {
+                        sh 'aws sts get-caller-identity'
+                        sh 'terraform init'
+                        sh 'terraform apply -auto-approve'
+                    }
                 }
             }
         }
