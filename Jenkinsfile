@@ -8,11 +8,24 @@ pipeline {
     environment {
         PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
         AWS_REGION   = 'ap-south-1'
-        ECR_REPO     = '463655182088.dkr.ecr.ap-south-1.amazonaws.com/capstone-web-app-ecr'
         CLUSTER_NAME = 'capstone-eks-cluster'
     }
 
     stages {
+
+        stage('Fetch ECR Repo URL') {
+            steps {
+                dir('infra') {
+                    script {
+                        env.ECR_REPO = sh(
+                            script: "terraform output -raw ecr_repository_url",
+                            returnStdout: true
+                        ).trim()
+                    }
+                    echo "Using ECR Repo: ${env.ECR_REPO}"
+                }
+            }
+        }
 
         stage('Checkout Main Repo') {
             steps {
