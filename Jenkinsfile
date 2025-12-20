@@ -115,13 +115,13 @@ pipeline {
             }
         }
 
-        stage('SAST Scan (Optional)') {
+        stage('SAST Scan') {
             steps {
                 echo "SAST stage placeholder (e.g., Trivy / SonarQube)"
             }
         }
 
-        stage('DAST Scan (Optional)') {
+        stage('DAST Scan') {
             steps {
                 echo "DAST stage placeholder (e.g., OWASP ZAP)"
             }
